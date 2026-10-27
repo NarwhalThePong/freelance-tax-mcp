@@ -1,6 +1,6 @@
 # freelance-tax-mcp
 
-A free Model Context Protocol (MCP) server for **US freelancer and sole-proprietor taxes in 2026**: quarterly estimated tax with the safe harbor, self-employment tax, IRS due dates, the IRS mileage deduction (including the July 1, 2026 rate change) and the home office deduction. Everything runs locally: no API key, no account, no network calls.
+A free Model Context Protocol (MCP) server for **US freelancer and sole-proprietor taxes in 2026**: quarterly estimated tax with the safe harbor, self-employment tax, IRS due dates, the IRS mileage deduction (including the July 1, 2026 rate change) the home office deduction, and the most you can put into a SEP IRA vs a Solo 401(k). Everything runs locally: no API key, no account, no network calls.
 
 ## Tools
 
@@ -12,9 +12,10 @@ A free Model Context Protocol (MCP) server for **US freelancer and sole-propriet
 | `mileage` | Standard mileage deduction priced by the date of each trip (business 72.5 cents Jan to Jun 2026, 76 cents from Jul 1), from a trip log or split totals. |
 | `mileage_rates` | IRS mileage rates by period with sources. |
 | `home_office` | Simplified ($5 per sq ft, up to 300 sq ft) vs regular Form 8829 method, with the income limit and carryovers. |
+| `retirement_contribution` | 2026 SEP IRA vs Solo 401(k) maximum contribution for a sole proprietor or single-member LLC (IRS Pub. 560 rate worksheet): employer share, $24,500 deferral, catch-up ($8,000 at 50+, $11,250 at 60 to 63), the $72,000 cap, which plan allows more and estimated income tax saved. Options `age_group`, `w2_wages`, `other_deferrals`, `plan_rate`, `bracket`. |
 | `tax_figures` | 2026 brackets, standard deductions, SE tax figures and official IRS/SSA sources. |
 
-Figures come from IRS Rev. Proc. 2025-32, the SSA 2026 wage base ($184,500), Form 1040-ES (2026), IRS Announcement 2026-11 and Pub. 587. Planning estimates only; not tax, legal or accounting advice.
+Figures come from IRS Rev. Proc. 2025-32, the SSA 2026 wage base ($184,500), Form 1040-ES (2026), IRS Announcement 2026-11, Pub. 587, Pub. 560 and IRS Notice 2025-67 (2026 retirement plan limits). Planning estimates only; not tax, legal or accounting advice.
 
 ## Install
 
@@ -40,11 +41,14 @@ From source: `git clone https://github.com/NarwhalThePong/freelance-tax-mcp.git 
 
 `estimate` with `{ "net_profit": 80000 }` (single, no other income) returns self-employment tax of $11,303.64, total 2026 federal tax of $16,647.47 and a quarterly payment of $4,161.87, with the four due dates.
 
+`retirement_contribution` with `{ "net_profit": 100000 }` (under 50) returns a SEP IRA maximum of $18,587.04 and a Solo 401(k) maximum of $43,087.04 ($24,500 deferral + $18,587.04 employer share).
+
 ## Prefer a web page?
 
 - Free freelance quarterly estimated tax calculator: https://narwhalthepong.github.io/gumroad-license-check/freelance-quarterly-estimated-tax-calculator
 - Free 2026 mileage deduction calculator: https://narwhalthepong.github.io/gumroad-license-check/2026-mileage-deduction-calculator
 - Free home office deduction calculator: https://narwhalthepong.github.io/gumroad-license-check/home-office-deduction-calculator
+- Free SEP IRA vs Solo 401(k) contribution calculator: https://narwhalthepong.github.io/gumroad-license-check/self-employed-retirement-contribution-calculator
 
 **Disclosure:** these are our own free pages.
 

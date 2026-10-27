@@ -31,11 +31,11 @@ test('home office compare', async () => {
   assert.ok(['simplified', 'regular'].includes(h.better));
 });
 test('errors surface', async () => { await assert.rejects(T.estimate({}), /net_profit/); });
-test('stdio server lists 7 tools and answers a call', async () => {
+test('stdio server lists 8 tools and answers a call', async () => {
   const c = new Client({ name: 't', version: '1' });
   await c.connect(new StdioClientTransport({ command: process.execPath, args: [new URL('../src/server.js', import.meta.url).pathname] }));
   const tools = (await c.listTools()).tools.map(t => t.name).sort();
-  assert.deepEqual(tools, ['due_dates', 'estimate', 'home_office', 'mileage', 'mileage_rates', 'self_employment_tax', 'tax_figures']);
+  assert.deepEqual(tools, ['due_dates', 'estimate', 'home_office', 'mileage', 'mileage_rates', 'retirement_contribution', 'self_employment_tax', 'tax_figures']);
   const r = await c.callTool({ name: 'due_dates', arguments: {} });
   assert.equal(r.structuredContent.quarters.length, 4);
   const e = await c.callTool({ name: 'estimate', arguments: {} });

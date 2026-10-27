@@ -1,4 +1,4 @@
-// Tool logic: calls the US Freelancer Tax API v1.0.0 handler in-process (no network, no API key).
+// Tool logic: calls the US Freelancer Tax API handler in-process (no network, no API key).
 import { handle } from './lib/index.js';
 
 async function call(path, args) {
@@ -15,4 +15,5 @@ export const dueDates = a => call('/v1/due-dates', a);
 export const mileage = a => call('/v1/mileage', a);
 export const mileageRates = () => call('/v1/mileage/rates', {});
 export const homeOffice = a => call('/v1/home-office', a);
+export const retirement = a => call('/v1/retirement', a);
 export const figures = () => call('/v1/figures', {});

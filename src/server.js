@@ -5,7 +5,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod';
 import * as T from './tools.js';
 
-const server = new McpServer({ name: 'freelance-tax-mcp', version: '1.0.0' });
+const server = new McpServer({ name: 'freelance-tax-mcp', version: '1.1.0' });
 const out = r => ({ content: [{ type: 'text', text: JSON.stringify(r, null, 2) }], structuredContent: r });
 const wrap = fn => async a => { try { return out(await fn(a)); } catch (e) { return { isError: true, content: [{ type: 'text', text: e.message }] }; } };
 const income = {
@@ -50,6 +50,14 @@ server.registerTool('home_office', { title: 'Home office deduction',
     utilities: n('Utilities'), repairs: n('Repairs and maintenance'), other_home: n('Other whole-home costs'), direct: n('Costs only for the office'),
     prior_operating: n('Carryover of operating costs from last year'), basis: n('Home basis for depreciation (building only, not land)'),
     first_month: n('Month the office was first used (1-12) if this is the first year'), prior_depreciation: n('Depreciation carryover from last year') } }, wrap(T.homeOffice));
+server.registerTool('retirement_contribution', { title: '2026 SEP IRA vs Solo 401(k) max contribution',
+  description: 'Most a sole proprietor or single-member LLC owner can put into a SEP IRA vs a Solo 401(k) for 2026 (IRS Pub. 560 rate worksheet, 2026 limits: $72,000 total, $24,500 deferral, $8,000 catch-up at 50+, $11,250 at 60-63), plus estimated income tax saved. Planning estimate, not tax or investment advice.',
+  inputSchema: { net_profit: z.number().min(0).describe('2026 net self-employment profit (Schedule C line 31), USD'),
+    age_group: z.enum(['under50', '50plus', '60to63']).optional().describe('Age at the end of 2026 (default under50)'),
+    w2_wages: z.number().min(0).optional().describe('W-2 wages from another job (uses up the Social Security wage base)'),
+    other_deferrals: z.number().min(0).optional().describe('401(k)/403(b) employee deferrals already made at another job this year'),
+    plan_rate: z.number().min(0).max(25).optional().describe('Employer contribution rate % in the plan (default 25)'),
+    bracket: z.number().min(0).max(37).optional().describe('Marginal federal income tax bracket % for the tax-saved estimate (default 22)') } }, wrap(T.retirement));
 server.registerTool('tax_figures', { title: '2026 tax figures and sources', description: '2026 brackets, standard deductions, SE tax figures and official IRS/SSA sources used.', inputSchema: {} }, wrap(T.figures));
 
 await server.connect(new StdioServerTransport());

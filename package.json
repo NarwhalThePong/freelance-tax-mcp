@@ -1,8 +1,8 @@
 {
   "name": "freelance-tax-mcp",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "mcpName": "io.github.NarwhalThePong/freelance-tax-mcp",
-  "description": "MCP server for US freelancer taxes in 2026: quarterly estimated tax, self-employment tax, IRS due dates, mileage and home office deductions. Runs locally, no API key, no network.",
+  "description": "MCP server for US freelancer taxes in 2026: quarterly estimated tax, self-employment tax, IRS due dates, mileage and home office deductions, and SEP IRA vs Solo 401(k) contribution limits. Runs locally, no API key, no network.",
   "type": "module",
   "bin": {
     "freelance-tax-mcp": "src/server.js"
@@ -27,7 +27,10 @@
     "1040-es",
     "irs",
     "mileage",
-    "home-office"
+    "home-office",
+    "sep-ira",
+    "solo-401k",
+    "retirement"
   ],
   "license": "MIT",
   "engines": {

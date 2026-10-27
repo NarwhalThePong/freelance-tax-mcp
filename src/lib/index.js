@@ -3,6 +3,7 @@
 import * as C from './core.js';
 import * as M from './mileage.js';
 import * as H from './homeoffice.js';
+import * as R from './retirement.js';
 
 const API_VERSION = '1.0.0', TAX_YEAR = 2026, MAX = 1e9, MAX_BATCH = 100;
 const STATUSES = ['single', 'mfj', 'mfs', 'hoh', 'qss'];
@@ -152,6 +153,22 @@ function homeOffice(o) {
   return { method, ...out, currency: 'USD', note: HO_NOTE };
 }
 
+const RET_NOTE = 'Most a sole proprietor or single-member LLC owner can contribute for 2026 (IRS Pub. 560 rate worksheet): SE tax on 92.35% of profit, earned income = profit minus half SE tax, employer contribution at plan_rate/(1+plan_rate) (20% at 25%) capped at 25% of $360,000 and $72,000; Solo 401(k) adds the $24,500 deferral (shared with other 401(k)/403(b) plans), catch-up $8,000 at 50+ or $11,250 at 60-63, never more than earned income. Limits: IRS Notice 2025-67. Planning estimate, not tax or investment advice.';
+const AGES = ['under50', '50plus', '60to63'];
+function retirement(o) {
+  const profit = num(o, 'net_profit', { required: true });
+  const age = String(o.age_group || 'under50');
+  if (!AGES.includes(age)) throw new Bad('"age_group" must be under50, 50plus or 60to63');
+  const a = { netProfit: profit, age, w2Wages: num(o, 'w2_wages', { dflt: 0 }), otherDeferrals: num(o, 'other_deferrals', { dflt: 0 }),
+    planRate: num(o, 'plan_rate', { dflt: 25, max: 25 }), bracket: num(o, 'bracket', { dflt: 22, max: 37 }) };
+  let r; try { r = R.compute(a); } catch (e) { throw new Bad(e.message); }
+  return { tax_year: r.year, net_profit: r.netProfit, age_group: age, se_tax: r.seTax, earned_income: r.earnedIncome, reduced_rate_pct: r.reducedRatePct,
+    sep_ira: snake(r.sep), solo_401k: snake(r.solo401k), better: r.better, difference: r.difference,
+    income_tax_saved: { bracket_pct: a.bracket, sep_ira: r.taxSaved.sep, solo_401k: r.taxSaved.solo401k },
+    limits: { total_415c: r.limits.total415, elective_deferral: r.limits.deferral, compensation_cap: r.limits.compCap, catchup_50: r.limits.catch50, catchup_60_63: r.limits.catch6063, ss_wage_base: r.limits.ssBase },
+    currency: 'USD', note: RET_NOTE };
+}
+
 function batch(o, fn) {
   if (!Array.isArray(o.items)) throw new Bad('"items" must be an array');
   if (o.items.length > MAX_BATCH) throw new Bad(`at most ${MAX_BATCH} items per request`);
@@ -186,8 +203,9 @@ export async function handle(req, env = {}) {
       case '/v1/mileage/rates': return json(mileRates());
       case '/v1/mileage': return json(mileage(o));
       case '/v1/home-office': return json(homeOffice(o));
+      case '/v1/retirement': return json(retirement(o));
       case '/v1/estimate/batch': if (req.method !== 'POST') throw new Bad('Use POST', 405); return json(batch(o, estimate));
-      default: return json({ error: 'Not found', endpoints: ['/v1/figures', '/v1/se-tax', '/v1/estimate', '/v1/due-dates', '/v1/estimate/batch', '/v1/mileage', '/v1/mileage/rates', '/v1/home-office', '/health'] }, 404);
+      default: return json({ error: 'Not found', endpoints: ['/v1/figures', '/v1/se-tax', '/v1/estimate', '/v1/due-dates', '/v1/estimate/batch', '/v1/mileage', '/v1/mileage/rates', '/v1/home-office', '/v1/retirement', '/health'] }, 404);
     }
   } catch (e) {
     if (e instanceof Bad) return json({ error: e.message }, e.status);
