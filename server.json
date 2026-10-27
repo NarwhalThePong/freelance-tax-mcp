@@ -1,0 +1,21 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.NarwhalThePong/freelance-tax-mcp",
+  "title": "US Freelancer Tax Calculator 2026",
+  "description": "2026 US freelancer tax: quarterly estimates, SE tax, due dates, mileage, home office. No API key.",
+  "repository": {
+    "url": "https://github.com/NarwhalThePong/freelance-tax-mcp",
+    "source": "github"
+  },
+  "version": "1.0.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "freelance-tax-mcp",
+      "version": "1.0.0",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ]
+}

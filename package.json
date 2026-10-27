@@ -1,0 +1,49 @@
+{
+  "name": "freelance-tax-mcp",
+  "version": "1.0.0",
+  "mcpName": "io.github.NarwhalThePong/freelance-tax-mcp",
+  "description": "MCP server for US freelancer taxes in 2026: quarterly estimated tax, self-employment tax, IRS due dates, mileage and home office deductions. Runs locally, no API key, no network.",
+  "type": "module",
+  "bin": {
+    "freelance-tax-mcp": "src/server.js"
+  },
+  "main": "src/tools.js",
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test test/"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "tax",
+    "freelancer",
+    "self-employment-tax",
+    "estimated-tax",
+    "1040-es",
+    "irs",
+    "mileage",
+    "home-office"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.1",
+    "zod": "^3.25.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NarwhalThePong/freelance-tax-mcp.git"
+  },
+  "homepage": "https://github.com/NarwhalThePong/freelance-tax-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/NarwhalThePong/freelance-tax-mcp/issues"
+  },
+  "author": "Pau Drudis"
+}
