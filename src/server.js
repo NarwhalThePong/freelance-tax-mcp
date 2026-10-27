@@ -5,7 +5,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod';
 import * as T from './tools.js';
 
-const server = new McpServer({ name: 'freelance-tax-mcp', version: '1.3.0' });
+const server = new McpServer({ name: 'freelance-tax-mcp', version: '1.4.0' });
 const out = r => ({ content: [{ type: 'text', text: JSON.stringify(r, null, 2) }], structuredContent: r });
 const wrap = fn => async a => { try { return out(await fn(a)); } catch (e) { return { isError: true, content: [{ type: 'text', text: e.message }] }; } };
 const income = {
@@ -38,6 +38,16 @@ server.registerTool('freelance_hourly_rate', { title: 'Freelance hourly rate cal
     buffer_pct: z.number().min(0).max(90).optional().describe('Buffer for slow months and unpaid invoices % (default 10)'),
     day_hours: z.number().min(0).max(24).optional().describe('Billable hours in a full client day (default 8)'),
     check_rate: z.number().min(0).optional().describe('Optional: an hourly rate to check what it pays you per year') } }, wrap(T.hourlyRate));
+server.registerTool('qbi_deduction', { title: '2026 QBI deduction (Section 199A)',
+  description: '2026 Qualified Business Income deduction (Section 199A, Form 8995 / 8995-A) for one trade or business: 20% of QBI at or below the $201,750 threshold ($403,500 mfj), the phase-in range up to $276,750 ($553,500 mfj) with the SSTB applicable percentage and the W-2 wage / UBIA limit, the SSTB phase-out, 20% of REIT/PTP income and the overall cap of 20% of taxable income minus net capital gain. Same math as the free web calculator. Planning estimate, not tax advice.',
+  inputSchema: { qbi: z.number().describe('Qualified business income from the business (e.g. Schedule C profit minus the deductible half of SE tax, SE health insurance and retirement contributions), USD'),
+    taxable_income: z.number().describe('2026 taxable income BEFORE the QBI deduction, USD'),
+    filing_status: z.enum(['single', 'mfj', 'mfs', 'hoh', 'qss']).optional().describe('Filing status (default single)'),
+    sstb: z.boolean().optional().describe('Specified service trade or business (health, law, accounting, consulting, financial services, performing arts, athletics, etc.). Default false'),
+    w2_wages: z.number().min(0).optional().describe('W-2 wages the business paid to employees'),
+    ubia: z.number().min(0).optional().describe('Unadjusted basis immediately after acquisition (UBIA) of qualified property'),
+    reit_ptp_income: z.number().min(0).optional().describe('Qualified REIT dividends plus qualified PTP income'),
+    net_capital_gain: z.number().min(0).optional().describe('Net capital gain (including qualified dividends) for the overall cap') } }, wrap(T.qbiDeduction));
 server.registerTool('due_dates', { title: 'Estimated tax due dates',
   description: 'IRS quarterly estimated tax due dates for a tax year, moved past weekends and DC legal holidays.',
   inputSchema: { year: z.number().int().min(2000).max(2100).optional().describe('Tax year (default 2026)') } }, wrap(T.dueDates));

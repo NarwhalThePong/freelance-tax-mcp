@@ -2,17 +2,17 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.NarwhalThePong/freelance-tax-mcp",
   "title": "US Freelancer Tax Calculator 2026",
-  "description": "2026 US freelancer tax: quarterly estimates, SE tax, mileage, home office, SEP/401(k), per diem.",
+  "description": "2026 US freelancer tax: quarterly estimates, SE tax, QBI, mileage, home office, SEP/401k, per diem.",
   "repository": {
     "url": "https://github.com/NarwhalThePong/freelance-tax-mcp",
     "source": "github"
   },
-  "version": "1.3.0",
+  "version": "1.4.0",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "freelance-tax-mcp",
-      "version": "1.3.0",
+      "version": "1.4.0",
       "transport": {
         "type": "stdio"
       }

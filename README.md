@@ -1,6 +1,6 @@
 # freelance-tax-mcp
 
-A free Model Context Protocol (MCP) server for **US freelancer and sole-proprietor taxes in 2026**: quarterly estimated tax with the safe harbor, self-employment tax (Schedule SE, with the Additional Medicare Tax), the hourly rate you need to charge, IRS due dates, the IRS mileage deduction (including the July 1, 2026 rate change), the home office deduction, the most you can put into a SEP IRA vs a Solo 401(k), and official GSA per diem rates with the self-employed meal deduction. Everything runs locally: no API key, no account, no network calls.
+A free Model Context Protocol (MCP) server for **US freelancer and sole-proprietor taxes in 2026**: quarterly estimated tax with the safe harbor, self-employment tax (Schedule SE, with the Additional Medicare Tax), the Section 199A QBI deduction (Form 8995 / 8995-A), the hourly rate you need to charge, IRS due dates, the IRS mileage deduction (including the July 1, 2026 rate change), the home office deduction, the most you can put into a SEP IRA vs a Solo 401(k), and official GSA per diem rates with the self-employed meal deduction. Everything runs locally: no API key, no account, no network calls.
 
 ## Tools
 
@@ -8,6 +8,7 @@ A free Model Context Protocol (MCP) server for **US freelancer and sole-propriet
 |---|---|
 | `estimate` | 2026 federal estimate from `net_profit` (or `ytd_profit` + `months`): SE tax, income tax, QBI, safe-harbor quarterly payment and due dates. Options `filing_status`, `w2_wages`, `withholding`, `prior_year_tax`, `prior_year_agi`, `state_rate_pct`. |
 | `self_employment_tax` | 2026 Schedule SE: 15.3% on 92.35% of net profit (none under $400), Social Security 12.4% up to the $184,500 wage base minus your W-2 wages, Medicare 2.9% with no cap, 0.9% Additional Medicare Tax over $200,000 / $250,000 (mfj) / $125,000 (mfs) split into the SE and wage parts, the deductible half, quarterly share and effective rate. Options `filing_status`, `w2_wages`, `spouse_w2_wages`, `ytd_profit` + `months`. |
+| `qbi_deduction` | 2026 Section 199A Qualified Business Income deduction for one business (Form 8995 / 8995-A): 20% of QBI at or below the $201,750 threshold ($403,500 mfj), the phase-in range up to $276,750 ($553,500 mfj) with the W-2 wage / UBIA limit, the SSTB phase-out, 20% of REIT/PTP income and the cap of 20% of taxable income minus net capital gain. Needs `qbi` and `taxable_income` (before the QBI deduction); options `filing_status`, `sstb`, `w2_wages`, `ubia`, `reit_ptp_income`, `net_capital_gain`. |
 | `freelance_hourly_rate` | Hourly and day rate needed to take home a target income after tax, business costs, weeks off, non-billable hours and a slow-month buffer; `check_rate` shows what a given rate pays per year and per hour worked. |
 | `due_dates` | Quarterly estimated tax due dates for a year, moved past weekends and DC legal holidays. |
 | `mileage` | Standard mileage deduction priced by the date of each trip (business 72.5 cents Jan to Jun 2026, 76 cents from Jul 1), from a trip log or split totals. |
@@ -20,7 +21,7 @@ A free Model Context Protocol (MCP) server for **US freelancer and sole-propriet
 | `mie_breakdown` | GSA meals and incidentals tiers (breakfast, lunch, dinner, incidentals, first/last day). |
 | `tax_figures` | 2026 brackets, standard deductions, SE tax figures and official IRS/SSA sources. |
 
-Figures come from IRS Rev. Proc. 2025-32, the SSA 2026 wage base ($184,500), Form 1040-ES (2026), IRS Announcement 2026-11, Pub. 587, Pub. 560, IRS Notice 2025-67 (2026 retirement plan limits), Pub. 463 and GSA per diem rates (api.gsa.gov, fetched 2026-10-20; public domain). Planning estimates only; not tax, legal or accounting advice.
+Figures come from IRS Rev. Proc. 2025-32, the SSA 2026 wage base ($184,500), Form 1040-ES (2026), IRS Announcement 2026-11, Pub. 587, Pub. 560, IRS Notice 2025-67 (2026 retirement plan limits), Forms 8995 and 8995-A (Section 199A), Pub. 463 and GSA per diem rates (api.gsa.gov, fetched 2026-10-20; public domain). Planning estimates only; not tax, legal or accounting advice.
 
 ## Install
 
@@ -48,6 +49,8 @@ From source: `git clone https://github.com/NarwhalThePong/freelance-tax-mcp.git 
 
 `self_employment_tax` with `{ "net_profit": 250000, "w2_wages": 50000 }` (single) returns Social Security of $16,678 (only $134,500 of wage base left), Medicare of $6,695.38, self-employment tax of $23,373.38 (deductible half $11,686.69) and $727.88 of Additional Medicare Tax on the self-employment income.
 
+`qbi_deduction` with `{ "qbi": 150000, "taxable_income": 240000, "sstb": true, "w2_wages": 40000 }` (single, a consulting-type service business inside the phase-in range) keeps 49% of the QBI and wages, so 20% of $73,500 is $14,700, the wage limit is $9,800 and the phase-in reduction is $2,499, giving a QBI deduction of $12,201.
+
 `freelance_hourly_rate` with the defaults ($60,000 take-home, $6,000 costs, 30% tax, 6 weeks off, 40 hours a week, 65% billable, 10% buffer) returns $85.21 an hour ($681.64 a day) over 1,196 billable hours.
 
 `retirement_contribution` with `{ "net_profit": 100000 }` (under 50) returns a SEP IRA maximum of $18,587.04 and a Solo 401(k) maximum of $43,087.04 ($24,500 deferral + $18,587.04 employer share).
@@ -57,6 +60,7 @@ From source: `git clone https://github.com/NarwhalThePong/freelance-tax-mcp.git 
 ## Prefer a web page?
 
 - Free 2026 self-employment tax calculator: https://narwhalthepong.github.io/gumroad-license-check/self-employment-tax-calculator
+- Free 2026 QBI deduction calculator: https://narwhalthepong.github.io/gumroad-license-check/qbi-deduction-calculator
 - Free freelance hourly rate calculator: https://narwhalthepong.github.io/gumroad-license-check/freelance-hourly-rate-calculator
 - Free freelance quarterly estimated tax calculator: https://narwhalthepong.github.io/gumroad-license-check/freelance-quarterly-estimated-tax-calculator
 - Free 2026 mileage deduction calculator: https://narwhalthepong.github.io/gumroad-license-check/2026-mileage-deduction-calculator

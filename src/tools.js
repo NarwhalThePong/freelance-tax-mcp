@@ -108,3 +108,35 @@ export async function mealDeduction(a = {}) {
   if (t.note) out.note = t.note; if (t.alternatives) out.alternatives = t.alternatives;
   return out;
 }
+
+// qbi_deduction: 2026 Section 199A QBI deduction, same math as the live QBI deduction calculator page core.
+import QBI from './lib/qbi.js';
+export const QBI_PAGE = 'https://narwhalthepong.github.io/gumroad-license-check/qbi-deduction-calculator';
+const ZONES = { below: 'At or below the threshold (full 20%, Form 8995)', phasein: 'In the phase-in range (Form 8995-A)', above: 'At or above the upper limit (Form 8995-A)' };
+export async function qbiDeduction(a = {}) {
+  for (const k of ['qbi', 'taxable_income']) if (a[k] === undefined || a[k] === null) throw new Error(`"${k}" is required`);
+  for (const k of ['qbi', 'taxable_income', 'w2_wages', 'ubia', 'reit_ptp_income', 'net_capital_gain'])
+    if (a[k] !== undefined && !Number.isFinite(Number(a[k]))) throw new Error(`"${k}" must be a number`);
+  const st = a.filing_status || 'single';
+  if (!Object.prototype.hasOwnProperty.call(QBI.LIMITS.thr, st)) throw new Error('"filing_status" must be single, mfj, mfs, hoh or qss');
+  const p = QBI.compute({ qbi: a.qbi, ti: a.taxable_income, status: st, sstb: a.sstb === true, w2: a.w2_wages, ubia: a.ubia, reit: a.reit_ptp_income, cg: a.net_capital_gain });
+  let note;
+  if (p.deduction === 0 && p.qbi === 0 && p.reitComponent === 0) note = 'No QBI deduction. Enter some qualified business income (or REIT/PTP income).';
+  else if (p.deduction === 0 && p.zone === 'above' && p.sstb) note = `No QBI deduction from this SSTB. Taxable income is at or above the 2026 upper limit ($${p.upper.toLocaleString('en-US')}), so a specified service trade or business does not qualify.`;
+  else if (p.deduction === 0 && p.zone !== 'below' && (p.wageLimit === 0 || p.wageLimit === null)) note = 'No QBI deduction. Above the threshold with no W-2 wages or UBIA, the wage limit is $0, so the deduction from this business is $0' + (p.reitComponent > 0 ? ' (except any REIT/PTP piece)' : '') + '.';
+  else note = `2026 QBI deduction: ${usd(p.deduction)} (${p.effectiveRate}% of QBI; Form ${p.form}).`;
+  return { tax_year: p.year, inputs: { qbi: p.qbi, taxable_income: p.taxableIncome, filing_status: st, sstb: p.sstb, w2_wages: Number(a.w2_wages || 0),
+      ubia: Number(a.ubia || 0), reit_ptp_income: Number(a.reit_ptp_income || 0), net_capital_gain: Number(a.net_capital_gain || 0) },
+    threshold: p.threshold, upper_limit: p.upper, phase_in_range: p.phaseRange, zone: p.zone, zone_description: ZONES[p.zone], form: p.form,
+    sstb_applicable_pct: p.applicablePct, qbi_after_applicable_pct: p.qbiEffective, tentative_20pct_of_qbi: p.tentative,
+    wage_ubia_limit: p.wageLimit, phase_in_reduction: p.reduction, qbi_component: p.qbiComponent, reit_ptp_component: p.reitComponent,
+    taxable_income_cap: p.taxableIncomeCap, qbi_deduction: p.deduction, effective_rate_pct_of_qbi: p.effectiveRate, note,
+    method: ['At or below the threshold ($201,750; $403,500 mfj; $201,775 mfs): 20% of QBI (Form 8995).',
+      'In the phase-in range ($75,000 wide; $150,000 mfj): an SSTB keeps only the applicable percentage of QBI, W-2 wages and UBIA; the excess of 20% of QBI over the wage limit is reduced by (taxable income - threshold) / range.',
+      'At or above the upper limit ($276,750; $553,500 mfj; $276,775 mfs): an SSTB gets $0; others get the lesser of 20% of QBI and the wage limit.',
+      'Wage limit = greater of 50% of W-2 wages, or 25% of W-2 wages + 2.5% of UBIA of qualified property.',
+      'Plus 20% of qualified REIT dividends and PTP income; total capped at 20% of (taxable income - net capital gain).',
+      'Lowers income tax only, not self-employment tax. Taxable income means before the QBI deduction.'],
+    sources: ['https://www.irs.gov/forms-pubs/about-form-8995', 'https://www.irs.gov/forms-pubs/about-form-8995-a', 'https://www.irs.gov/pub/irs-drop/rp-25-32.pdf'],
+    calculator_page: QBI_PAGE, currency: 'USD', disclaimer: 'Planning estimate for one trade or business, not tax advice.' };
+}
