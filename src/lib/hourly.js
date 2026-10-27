@@ -1,0 +1,27 @@
+// Verbatim copy of the calculation core of the live page
+// https://narwhalthepong.github.io/gumroad-license-check/freelance-hourly-rate-calculator
+// so the MCP tool and the page give the same numbers. MIT License.
+/*calc-start*/
+  function nz(v) { return isFinite(v) && v > 0 ? v : 0; }
+  function clampPct(v, max) { return Math.min(nz(v), max) / 100; }
+  function hours(o) {
+    var weeks = Math.max(0, 52 - Math.min(nz(o.off), 52));
+    return { weeks: weeks, worked: weeks * nz(o.hpw), billable: weeks * nz(o.hpw) * clampPct(o.bill, 100) };
+  }
+  // Rate needed so that, after the buffer, costs and tax, you take home o.take per year.
+  function need(o) {
+    var t = clampPct(o.tax, 90), b = clampPct(o.buf, 90), h = hours(o);
+    var pre = nz(o.take) / (1 - t), rev = (pre + nz(o.exp)) / (1 - b);
+    var rate = h.billable > 0 ? rev / h.billable : null;
+    return { pre: pre, rev: rev, weeks: h.weeks, hours: h.billable, rate: rate, day: rate === null ? null : rate * nz(o.day),
+      week: h.weeks > 0 ? rev / h.weeks : null, month: rev / 12, taxAmt: pre * t };
+  }
+  // What a given hourly rate pays you per year with the same assumptions.
+  function check(o, rate) {
+    var t = clampPct(o.tax, 90), b = clampPct(o.buf, 90), h = hours(o);
+    var rev = nz(rate) * h.billable * (1 - b), pre = rev - nz(o.exp);
+    var take = pre > 0 ? pre * (1 - t) : pre;
+    return { rev: rev, pre: pre, take: take, month: take / 12, perHr: h.worked > 0 ? take / h.worked : null };
+  }
+  /*calc-end*/
+export { need, check, hours };

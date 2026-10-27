@@ -5,7 +5,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod';
 import * as T from './tools.js';
 
-const server = new McpServer({ name: 'freelance-tax-mcp', version: '1.2.0' });
+const server = new McpServer({ name: 'freelance-tax-mcp', version: '1.3.0' });
 const out = r => ({ content: [{ type: 'text', text: JSON.stringify(r, null, 2) }], structuredContent: r });
 const wrap = fn => async a => { try { return out(await fn(a)); } catch (e) { return { isError: true, content: [{ type: 'text', text: e.message }] }; } };
 const income = {
@@ -25,8 +25,19 @@ server.registerTool('estimate', { title: '2026 quarterly estimated tax',
     qbi: z.boolean().optional().describe('Apply the simple 20% QBI deduction (default true)'),
     state_rate_pct: z.number().min(0).max(20).optional().describe('Flat state income tax rate % for a rough state estimate') } }, wrap(T.estimate));
 server.registerTool('self_employment_tax', { title: '2026 self-employment tax',
-  description: 'Social Security and Medicare (SE) tax on 2026 net self-employment profit, the deductible half and Additional Medicare Tax.',
+  description: '2026 self-employment tax (Schedule SE): 15.3% on 92.35% of net profit (none under $400), Social Security 12.4% up to the $184,500 wage base minus W-2 wages, Medicare 2.9% uncapped, 0.9% Additional Medicare over the filing-status threshold (split SE vs wages), the deductible half, quarterly share and effective rate. Same math as the free web calculator. Planning estimate, not tax advice.',
   inputSchema: income }, wrap(T.seTax));
+server.registerTool('freelance_hourly_rate', { title: 'Freelance hourly rate calculator',
+  description: 'Hourly and day rate a freelancer needs to take home a target income after tax, business costs, time off, non-billable hours and a slow-month buffer; optionally checks what a given rate pays per year. Defaults match the free web calculator ($60,000 take-home, $6,000 costs, 30% tax, 6 weeks off, 40 h/week, 65% billable, 10% buffer, 8 h day).',
+  inputSchema: { take_home: z.number().min(0).optional().describe('Income you want to take home per year after tax, USD (default 60000)'),
+    business_costs: z.number().min(0).optional().describe('Business costs per year, USD (default 6000)'),
+    tax_rate_pct: z.number().min(0).max(90).optional().describe('Estimated tax rate on profit %, default 30 (use the estimate tool for a 2026 figure)'),
+    weeks_off: z.number().min(0).max(52).optional().describe('Weeks off per year (default 6)'),
+    hours_per_week: z.number().min(0).max(168).optional().describe('Hours worked per week (default 40)'),
+    billable_pct: z.number().min(0).max(100).optional().describe('Share of hours you can bill % (default 65)'),
+    buffer_pct: z.number().min(0).max(90).optional().describe('Buffer for slow months and unpaid invoices % (default 10)'),
+    day_hours: z.number().min(0).max(24).optional().describe('Billable hours in a full client day (default 8)'),
+    check_rate: z.number().min(0).optional().describe('Optional: an hourly rate to check what it pays you per year') } }, wrap(T.hourlyRate));
 server.registerTool('due_dates', { title: 'Estimated tax due dates',
   description: 'IRS quarterly estimated tax due dates for a tax year, moved past weekends and DC legal holidays.',
   inputSchema: { year: z.number().int().min(2000).max(2100).optional().describe('Tax year (default 2026)') } }, wrap(T.dueDates));

@@ -7,12 +7,12 @@
     "url": "https://github.com/NarwhalThePong/freelance-tax-mcp",
     "source": "github"
   },
-  "version": "1.2.0",
+  "version": "1.3.0",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "freelance-tax-mcp",
-      "version": "1.2.0",
+      "version": "1.3.0",
       "transport": {
         "type": "stdio"
       }

@@ -31,16 +31,20 @@ test('home office compare', async () => {
   assert.ok(['simplified', 'regular'].includes(h.better));
 });
 test('errors surface', async () => { await assert.rejects(T.estimate({}), /net_profit/); });
-test('stdio server lists 12 tools and answers a call', async () => {
+test('stdio server lists 13 tools and answers a call', async () => {
   const c = new Client({ name: 't', version: '1' });
   await c.connect(new StdioClientTransport({ command: process.execPath, args: [new URL('../src/server.js', import.meta.url).pathname] }));
   const tools = (await c.listTools()).tools.map(t => t.name).sort();
-  assert.deepEqual(tools, ['due_dates', 'estimate', 'home_office', 'meal_deduction', 'mie_breakdown', 'mileage', 'mileage_rates', 'per_diem_rates', 'per_diem_trip', 'retirement_contribution', 'self_employment_tax', 'tax_figures']);
+  assert.deepEqual(tools, ['due_dates', 'estimate', 'freelance_hourly_rate', 'home_office', 'meal_deduction', 'mie_breakdown', 'mileage', 'mileage_rates', 'per_diem_rates', 'per_diem_trip', 'retirement_contribution', 'self_employment_tax', 'tax_figures']);
   const r = await c.callTool({ name: 'due_dates', arguments: {} });
   assert.equal(r.structuredContent.quarters.length, 4);
   const md = await c.callTool({ name: 'meal_deduction', arguments: { zip: '10001', start: '2026-11-03', end: '2026-11-06' } });
   assert.equal(md.structuredContent.totals.deductible, 161);
   const e = await c.callTool({ name: 'estimate', arguments: {} });
   assert.equal(e.isError, true);
+  const h = await c.callTool({ name: 'freelance_hourly_rate', arguments: { take_home: 60000 } });
+  assert.equal(h.structuredContent.needed.hourly_rate, 85.21);
+  const s = await c.callTool({ name: 'self_employment_tax', arguments: { net_profit: 250000, w2_wages: 50000 } });
+  assert.equal(s.structuredContent.total_with_additional_medicare_on_se, 24101.25);
   await c.close();
 });
