@@ -5,7 +5,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod';
 import * as T from './tools.js';
 
-const server = new McpServer({ name: 'freelance-tax-mcp', version: '1.1.0' });
+const server = new McpServer({ name: 'freelance-tax-mcp', version: '1.2.0' });
 const out = r => ({ content: [{ type: 'text', text: JSON.stringify(r, null, 2) }], structuredContent: r });
 const wrap = fn => async a => { try { return out(await fn(a)); } catch (e) { return { isError: true, content: [{ type: 'text', text: e.message }] }; } };
 const income = {
@@ -58,6 +58,30 @@ server.registerTool('retirement_contribution', { title: '2026 SEP IRA vs Solo 40
     other_deferrals: z.number().min(0).optional().describe('401(k)/403(b) employee deferrals already made at another job this year'),
     plan_rate: z.number().min(0).max(25).optional().describe('Employer contribution rate % in the plan (default 25)'),
     bracket: z.number().min(0).max(37).optional().describe('Marginal federal income tax bracket % for the tax-saved estimate (default 22)') } }, wrap(T.retirement));
+const place = {
+  zip: z.string().optional().describe('5-digit ZIP code of where you stay (most reliable)'),
+  city: z.string().optional().describe('City (with state) if no ZIP'),
+  state: z.string().optional().describe('2-letter state code, e.g. NY'),
+  area_index: z.number().int().min(0).optional().describe('Pick one area when a ZIP or city matches several (see alternatives)')
+};
+const dates = { start: z.string().describe('First travel day, YYYY-MM-DD (Oct 1, 2025 to Sep 30, 2027)'), end: z.string().describe('Last travel day, YYYY-MM-DD') };
+server.registerTool('per_diem_rates', { title: 'GSA per diem rates (lodging + M&IE)',
+  description: 'Official GSA CONUS per diem rates for FY2026 and FY2027 by ZIP, city or state: lodging maximum by month and the meals and incidentals (M&IE) breakdown. 48 states + DC.',
+  inputSchema: { ...place, fiscal_year: z.number().int().min(2026).max(2027).optional().describe('Federal fiscal year (Oct 1 to Sep 30), default current'),
+    date: z.string().optional().describe('YYYY-MM-DD to get the lodging rate for that day') } }, wrap(T.perDiemRates));
+server.registerTool('per_diem_trip', { title: 'Per diem trip total (employer / federal travel)',
+  description: 'Maximum per diem for a trip under GSA/FTR rules: lodging per night by month, M&IE with 75% on the first and last day, minus provided meals at the GSA breakdown amounts.',
+  inputSchema: { ...place, ...dates,
+    breakfasts_provided: z.number().int().min(0).optional(), lunches_provided: z.number().int().min(0).optional(), dinners_provided: z.number().int().min(0).optional(),
+    no_lodging: z.boolean().optional().describe('Day trip or no lodging claimed') } }, wrap(T.perDiemTrip));
+server.registerTool('meal_deduction', { title: 'Self-employed per diem meal deduction (IRS standard meal allowance)',
+  description: 'Meal deduction for a self-employed business trip using the federal M&IE rate instead of receipts (IRS Pub. 463): 3/4 on travel days (or full), times the deductible share (50%, or 80% for DOT hours-of-service workers). Planning estimate, not tax advice.',
+  inputSchema: { ...place, ...dates,
+    method: z.enum(['three-quarters', 'full']).optional().describe('Travel-day rule (default three-quarters)'),
+    percent: z.union([z.literal(50), z.literal(80), z.literal(100)]).optional().describe('Deductible share % (default 50)') } }, wrap(T.mealDeduction));
+server.registerTool('mie_breakdown', { title: 'GSA M&IE breakdown tiers',
+  description: 'GSA meals and incidentals tiers (breakfast, lunch, dinner, incidentals, first/last day) for a fiscal year.',
+  inputSchema: { fiscal_year: z.number().int().min(2026).max(2027).optional() } }, wrap(T.mieBreakdown));
 server.registerTool('tax_figures', { title: '2026 tax figures and sources', description: '2026 brackets, standard deductions, SE tax figures and official IRS/SSA sources used.', inputSchema: {} }, wrap(T.figures));
 
 await server.connect(new StdioServerTransport());
