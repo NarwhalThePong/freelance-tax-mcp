@@ -1,6 +1,6 @@
 {
   "name": "freelance-tax-mcp",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "mcpName": "io.github.NarwhalThePong/freelance-tax-mcp",
   "description": "MCP server for US freelancer taxes in 2026: quarterly estimated tax, self-employment tax (Schedule SE with Additional Medicare), the Section 199A QBI deduction (Form 8995/8995-A), freelance hourly rate, IRS due dates, mileage, home office, SEP IRA vs Solo 401(k), and GSA per diem rates with the self-employed meal deduction. Runs locally, no API key, no network.",
   "type": "module",

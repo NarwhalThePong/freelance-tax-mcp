@@ -5,7 +5,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod';
 import * as T from './tools.js';
 
-const server = new McpServer({ name: 'freelance-tax-mcp', version: '1.4.0' });
+const server = new McpServer({ name: 'freelance-tax-mcp', version: '1.4.1' });
 const out = r => ({ content: [{ type: 'text', text: JSON.stringify(r, null, 2) }], structuredContent: r });
 const wrap = fn => async a => { try { return out(await fn(a)); } catch (e) { return { isError: true, content: [{ type: 'text', text: e.message }] }; } };
 const income = {
