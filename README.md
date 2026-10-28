@@ -71,6 +71,13 @@ From source: `git clone https://github.com/NarwhalThePong/freelance-tax-mcp.git 
 
 **Disclosure:** these are our own free pages.
 
+## Prefer a spreadsheet?
+
+- [Freelancer Quarterly Tax Planner 2026 (Excel + Google Sheets)](https://payhip.com/b/UspdI), $9: logs each payment and expense, works out how much of every dollar to set aside, the safe-harbor and full quarterly payments, and tracks what you've paid against the 2026 due dates.
+- [Home Office Deduction Worksheet (Excel + Google Sheets)](https://payhip.com/b/8bG3C), $9: simplified vs regular (Form 8829) method side by side, with depreciation, the income limit and carryovers.
+
+Both are our own paid products (the MCP server stays free). Not tax advice.
+
 ## License
 
 MIT
